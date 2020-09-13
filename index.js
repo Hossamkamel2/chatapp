@@ -6,6 +6,7 @@ const helmet = require("helmet");
 const app = express();
 const users = require("./routes/users");
 const auth = require("./routes/auth");
+const mess = require("./routes/messages");
 // if (!config.get("jwtPrivateKey")) {
 //   console.error("fetal error jwt is not defined");
 //   process.exit(1);
@@ -23,6 +24,7 @@ app.use(express.json());
 
 app.use("/api/users", users);
 app.use("/api/auth", auth);
+app.use("/api/mess", mess);
 
 const port = process.env.PORT || 3000;
 
