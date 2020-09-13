@@ -7,4 +7,4 @@ var Message = mongoose.model("Message", {
   },
   message: String,
 });
-module.exports = Message;
+exports.Message = Message;
