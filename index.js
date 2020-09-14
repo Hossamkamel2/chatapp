@@ -20,19 +20,15 @@ io.on("connection", (socket) => {
       const notificate = { _id: mess._id, sender: user, message: message };
 
       io.emit("newMessage", notificate);
-    } catch {}
+    } catch (ex) {
+      console.log(ex);
+    }
   });
 });
 
-// const http = require("http");
-// const socketIo = require("socket.io");
 const users = require("./routes/users");
 const auth = require("./routes/auth");
 const mess = require("./routes/messages");
-// if (!config.get("jwtPrivateKey")) {
-//   console.error("fetal error jwt is not defined");
-//   process.exit(1);
-// }
 
 mongoose
   .connect("mongodb://localhost/chatapp")

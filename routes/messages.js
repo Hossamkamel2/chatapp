@@ -6,8 +6,7 @@ const _ = require("lodash");
 const app = express();
 var http = require("http").Server(app);
 var io = require("socket.io")(http);
-// const http = require("http");
-// const socketIo = require("socket.io");
+
 const { Message } = require("../models/messages");
 const { User } = require("../models/user");
 
