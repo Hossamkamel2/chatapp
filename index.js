@@ -4,6 +4,28 @@ var cors = require("cors");
 const mongoose = require("mongoose");
 const helmet = require("helmet");
 const app = express();
+const _ = require("lodash");
+const { User } = require("./models/user");
+const { Message } = require("./models/messages");
+const server = require("http").Server(app);
+const io = require("socket.io")(server);
+
+io.on("connection", (socket) => {
+  socket.on("message", async (data) => {
+    const { sender, message } = data;
+    const user = await User.findById(sender).select({ name: 1 });
+    const mess = new Message(data, _.pick(["sender._id", "message"]));
+    try {
+      await mess.save();
+      const notificate = { _id: mess._id, sender: user, message: message };
+
+      io.emit("newMessage", notificate);
+    } catch {}
+  });
+});
+
+// const http = require("http");
+// const socketIo = require("socket.io");
 const users = require("./routes/users");
 const auth = require("./routes/auth");
 const mess = require("./routes/messages");
@@ -28,4 +50,4 @@ app.use("/api/mess", mess);
 
 const port = process.env.PORT || 3000;
 
-app.listen(port, () => console.log(`Listening on port ${port}....`));
+server.listen(port, () => console.log(`Listening on port ${port}....`));

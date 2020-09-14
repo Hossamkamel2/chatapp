@@ -6,22 +6,31 @@ const _ = require("lodash");
 const app = express();
 var http = require("http").Server(app);
 var io = require("socket.io")(http);
+// const http = require("http");
+// const socketIo = require("socket.io");
 const { Message } = require("../models/messages");
+const { User } = require("../models/user");
 
 router.get("/", auth, async (req, res) => {
-  const messagewithuser = await message
-    .find()
-    .populate("User -_id sender", "-_id -email -password -__v")
+  const messagewithuser = await Message.find()
+    .populate("User sender", " -email -password -__v")
     .select(" message");
   res.send(messagewithuser);
 });
+router.get("/:id", auth, async (req, res) => {
+  const messagewithuser = await Message.findById(req.params.id)
+    .populate("User sender", " -email -password -__v")
+    .select(" message");
+  res.send(messagewithuser);
+});
+
 router.post("/", auth, async (req, res) => {
   const { error } = validate(req.body);
   if (error) {
     return res.status(400).send(error.details[0].message);
   }
-  let mess = new message(req.body, _.pick(["_id", "message"]));
-  io.emit("message", mess);
+  let mess = new Message(req.body, _.pick(["_id", "message"]));
+
   await mess.save();
   res.sendStatus(200);
 });
@@ -31,7 +40,6 @@ router.put("/:id", auth, async (req, res) => {
   if (error) return res.status(400).send(error.details[0].message);
 
   const mess = await Message.findById(req.params.id);
-  console.log(mess);
   if (!mess) return res.status(400).send("Invalid message.");
   if (!canChange(req.user._id, mess.sender._id))
     return res.status(403).send("Access denied.");
@@ -41,15 +49,14 @@ router.put("/:id", auth, async (req, res) => {
 });
 
 router.delete("/:id", auth, async (req, res) => {
-  const { error } = validateedit(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
-
   const mess = await Message.findById(req.params.id);
-  console.log(mess);
   if (!mess) return res.status(400).send("Invalid message.");
-  if (!canChange(req.user._id, mess.sender._id))
+  if (!canChange(req.user._id, mess.sender._id)) {
+    console.log(req.user._id, mess.sender._id);
     return res.status(403).send("Access denied.");
-  await mess.remove();
+  }
+
+  await Message.deleteOne({ _id: req.params.id });
 
   res.send(mess);
 });
@@ -72,7 +79,7 @@ function validateedit(message) {
 }
 
 function canChange(userid, senderid) {
-  return userid === senderid;
+  return userid == senderid;
 }
 
 module.exports = router;
